@@ -26,22 +26,7 @@ export default function Home() {
         <Heading mb=".8rem" variant="heading1">
           Solana Web App template
         </Heading>
-        <Text>Quickstart template to build Solana web3 applications</Text>
-        <Text mt="1.6rem">Featuring:</Text>
-        <ul>
-          <li>Connect and manage your Solana wallet</li>
-          <li>Fetch wallet NFTs</li>
-          <li>Select component for NFTs</li>
-          <li>Gallery component for NFTs</li>
-          <li>Mobile-first UI</li>
-          <li>Easily change your theme on theme.ts file</li>
-          <li>Google Analytics (UA) ready</li>
-          <br />
-          <li>
-            Used stack: <a href="https://nextjs.org/">NextJS</a> and{" "}
-            <a href="https://theme-ui.com/">Theme UI</a>
-          </li>
-        </ul>
+        <Text>Burn 1 NFT + 250 $TOKEN</Text>
 
         {walletNFTs ? (
           <>
