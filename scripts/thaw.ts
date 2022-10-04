@@ -1,50 +1,43 @@
 #!/usr/bin/env -S npx ts-node -T --skip-project
 import * as dotenv from "dotenv";
-import {Connection, Keypair, PublicKey} from "@solana/web3.js"
-import {keypairIdentity, Metaplex} from "@metaplex-foundation/js"
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
-import {AccountLayout} from "@solana/spl-token";
-
 dotenv.config();
+import {Connection, PublicKey} from "@solana/web3.js"
+import {keypairIdentity, Metaplex} from "@metaplex-foundation/js"
+import {AccountLayout} from "@solana/spl-token";
+import {getEnvClusterUrl} from "../utils/getEnvClusterUrl";
+import readKeypairFromPath from "utils/readKeypairFromPath";
 
-const CLUSTER_URL = {
-	"mainnet-beta": process.env.NEXT_PUBLIC_SOLANA_RPC_HOST_MAINNET_BETA,
-	"devnet": process.env.NEXT_PUBLIC_SOLANA_RPC_HOST_DEVNET,
-	"localnet": "http://localhost:8899",
-};
+(async () => {
+	const connection = new Connection(getEnvClusterUrl());
+	const delegateKeypair = readKeypairFromPath('delegate.json');
+	const metaplex = new Metaplex(connection).use(
+		keypairIdentity(delegateKeypair)
+	)
 
-const handler = async () => {
-	const cluster = process.env.NEXT_PUBLIC_CONNECTION_NETWORK
-	const connection = new Connection(CLUSTER_URL[cluster] || CLUSTER_URL.devnet);
-
-	const secretKey = JSON.parse(
-		readFileSync(
-			resolve('delegate.json'),
-			{encoding: 'utf8'}
-		)
-	);
-	const delegate = Keypair.fromSecretKey(Uint8Array.from(secretKey));
-
-	const ata = new PublicKey("CzqJFoKG3LXv23JHKaW5ESZZZ2outshhVw8mr18DHgVV")
-	const tokenAccount = await connection.getAccountInfo(ata);
-	const {owner, mint} = AccountLayout.decode(tokenAccount.data);
+	// TODO: make this more dynamic (cli args or smth)
+	const accounts = [
+		new PublicKey("CzqJFoKG3LXv23JHKaW5ESZZZ2outshhVw8mr18DHgVV"),
+	]
 
 	try {
-		await Metaplex
-			.make(connection)
-			.use(keypairIdentity(delegate))
-			.nfts()
-			.thawDelegatedNft({
-				mintAddress: mint,
-				tokenOwner: owner,
-				delegateAuthority: delegate,
-			})
-			.run();
+		await Promise.all(accounts.map(async (ata, i) => {
+			const tokenAccount = await connection.getAccountInfo(ata);
+			const {owner, mint} = AccountLayout.decode(tokenAccount.data);
+
+			const {response} = await metaplex.nfts()
+				.thawDelegatedNft({
+					mintAddress: mint,
+					tokenOwner: owner,
+					delegateAuthority: delegateKeypair,
+				})
+				.run()
+
+			console.log(
+				`Signature [${i}/${accounts.length}]:`,
+				response.signature
+			);
+		}));
 	} catch (err) {
-		console.log(err);
+		console.error(err.toString());
 	}
-}
-
-handler().then(() => console.log("Done."));
-
+})();
