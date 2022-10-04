@@ -1,17 +1,19 @@
 /** @jsxImportSource theme-ui */
-import { Heading, Text, Label } from "@theme-ui/components"
+import {Heading, Text, Label} from "@theme-ui/components"
 
 import Header from "@/components/Header/Header"
 import NFTSelectInput from "@/components/NFTSelectInput/NFTSelectInput"
 import useWalletNFTs from "@/hooks/useWalletNFTs"
-import { Button, Flex } from "theme-ui"
+import {Button, Flex} from "theme-ui"
 import theme from "@/styles/theme"
-import { useAnchorWallet } from "@solana/wallet-adapter-react"
-import { web3 } from "@project-serum/anchor"
+import {useAnchorWallet} from "@solana/wallet-adapter-react"
+import useFreezeNFT from "@/hooks/useFreezeNFT"
+import {PublicKey} from "@solana/web3.js"
 
 export default function Home() {
-  const { walletNFTs } = useWalletNFTs()
+  const {walletNFTs} = useWalletNFTs()
   const anchorWallet = useAnchorWallet()
+  const {approveAndFreezeNFT} = useFreezeNFT();
   return (
     <>
       <Header />
@@ -39,29 +41,20 @@ export default function Home() {
           }}
           onSubmit={async (e) => {
             e.preventDefault()
-            console.log("dasfgsag")
-
             const data = new FormData(e.currentTarget)
+            const [mint] = data.getAll("mint").filter((val) => val)
+            if (!anchorWallet?.publicKey || !mint) return true
 
-            const mints = data.getAll("mint").filter((val) => val)
+            try {
+              const mintAddress = new PublicKey(mint)
+              const [approveSig, freezeSig] =
+                await approveAndFreezeNFT(mintAddress);
 
-            if (!anchorWallet?.publicKey) return true
-
-            console.log(mints)
-            if (mints.length !== 1) return true
-
-            // const res = await initializeAndTerminateBreeding(
-            //   new web3.PublicKey(mints[0]),
-            //   new web3.PublicKey(mints[1])
-            // )
-
-            // await fetchNFTs()
-
-            // const res = await useMutation(
-            //   new web3.PublicKey('mint1'),
-            //   new web3.PublicKey('mint2')
-            // )
-
+              console.log("Approve tx:", approveSig);
+              console.log("Freeze tx:", freezeSig);
+            } catch (err) {
+              console.log(err)
+            }
             return true
           }}
         >
