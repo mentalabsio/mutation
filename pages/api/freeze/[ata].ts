@@ -1,10 +1,9 @@
 import {NextApiRequest, NextApiResponse} from 'next'
-import {Connection} from "@solana/web3.js";
+import {Connection, PublicKey} from "@solana/web3.js";
 import {keypairIdentity, Metaplex} from "@metaplex-foundation/js"
-import {PublicKey} from "@solana/web3.js"
 import {AccountLayout} from '@solana/spl-token';
 import {getEnvClusterUrl} from 'utils/getEnvClusterUrl';
-import readKeypairFromPath from 'utils/readKeypairFromPath';
+import {readKeypairFromPath} from 'utils/readKeypairFromPath';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 	const connection = new Connection(getEnvClusterUrl());

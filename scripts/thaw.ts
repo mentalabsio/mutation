@@ -5,7 +5,7 @@ import {Connection, PublicKey} from "@solana/web3.js"
 import {keypairIdentity, Metaplex} from "@metaplex-foundation/js"
 import {AccountLayout} from "@solana/spl-token";
 import {getEnvClusterUrl} from "../utils/getEnvClusterUrl";
-import readKeypairFromPath from "utils/readKeypairFromPath";
+import {readKeypairFromPath} from "../utils/readKeypairFromPath";
 
 (async () => {
 	const connection = new Connection(getEnvClusterUrl());
@@ -23,17 +23,16 @@ import readKeypairFromPath from "utils/readKeypairFromPath";
 		await Promise.all(accounts.map(async (ata, i) => {
 			const tokenAccount = await connection.getAccountInfo(ata);
 			const {owner, mint} = AccountLayout.decode(tokenAccount.data);
-
 			const {response} = await metaplex.nfts()
 				.thawDelegatedNft({
 					mintAddress: mint,
 					tokenOwner: owner,
 					delegateAuthority: delegateKeypair,
 				})
-				.run()
+				.run();
 
 			console.log(
-				`Signature [${i}/${accounts.length}]:`,
+				`Thaw [${i + 1}/${accounts.length}]:`,
 				response.signature
 			);
 		}));
