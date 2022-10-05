@@ -6,18 +6,16 @@ import { keypairIdentity, Metaplex } from "@metaplex-foundation/js"
 import { AccountLayout } from "@solana/spl-token"
 import { getEnvClusterUrl } from "../utils/getEnvClusterUrl"
 import { readKeypairFromPath } from "../utils/readKeypairFromPath"
+
+// TODO: make this more dynamic (cli args or smth)
+const accounts = [new PublicKey("CzqJFoKG3LXv23JHKaW5ESZZZ2outshhVw8mr18DHgVV")]
+
 ;(async () => {
-  const connection = new Connection(getEnvClusterUrl())
+  const connection = new Connection(getEnvClusterUrl(), "processed")
   const delegateKeypair = readKeypairFromPath("delegate.json")
   const metaplex = new Metaplex(connection).use(
     keypairIdentity(delegateKeypair)
   )
-
-  // TODO: make this more dynamic (cli args or smth)
-  const accounts = [
-    new PublicKey("CzqJFoKG3LXv23JHKaW5ESZZZ2outshhVw8mr18DHgVV"),
-  ]
-
   try {
     await Promise.all(
       accounts.map(async (ata, i) => {
@@ -31,7 +29,6 @@ import { readKeypairFromPath } from "../utils/readKeypairFromPath"
             delegateAuthority: delegateKeypair,
           })
           .run()
-
         console.log(`Thaw [${i + 1}/${accounts.length}]:`, response.signature)
       })
     )
